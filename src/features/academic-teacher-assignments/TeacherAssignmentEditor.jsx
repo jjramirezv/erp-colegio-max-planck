@@ -1,0 +1,46 @@
+import { useMemo, useState } from "react";
+import { CalendarDays, Check, GraduationCap, Trash2, UserRound, X } from "lucide-react";
+
+const CONTROL = "min-h-12 w-full rounded-xl border border-[#b7cbc4] bg-white px-4 text-sm font-semibold text-[#172720] outline-none focus:border-[#087a5b] focus:ring-4 focus:ring-[#087a5b]/10 disabled:bg-[#f1f5f3]";
+
+export default function TeacherAssignmentEditor({ assignment, teacher, year, levels, grades, sections, offerings, subjectMap, assignmentMap, teacherMap, busy, onClose, onSave, onRemove }) {
+  const fixed = Boolean(assignment);
+  const initialOffering = assignment?.offering;
+  const initialSection = assignment?.section;
+  const initialGrade = assignment?.grade;
+  const initialLevel = assignment?.level;
+  const [levelId, setLevelId] = useState(String(initialLevel?.id || levels[0]?.id || ""));
+  const availableGrades = useMemo(() => grades.filter((item) => item.active && String(item.levelId) === String(levelId)), [grades, levelId]);
+  const [gradeId, setGradeId] = useState(String(initialGrade?.id || availableGrades[0]?.id || ""));
+  const availableSections = useMemo(() => sections.filter((item) => item.active && String(item.yearId) === String(year?.id) && String(item.gradeId) === String(gradeId)), [sections, year, gradeId]);
+  const [sectionId, setSectionId] = useState(String(initialSection?.id || availableSections[0]?.id || ""));
+  const availableOfferings = useMemo(() => offerings.filter((item) => String(item.yearId) === String(year?.id) && String(item.sectionId) === String(sectionId)), [offerings, year, sectionId]);
+  const [offeringId, setOfferingId] = useState(String(initialOffering?.id || availableOfferings[0]?.id || ""));
+  const [startsOn, setStartsOn] = useState(assignment?.startsOn || year?.startsOn || "");
+  const [endsOn, setEndsOn] = useState(assignment?.endsOn || year?.endsOn || "");
+  const [validation, setValidation] = useState("");
+  const level = levels.find((item) => String(item.id) === String(levelId));
+  const sectionScope = level?.materialScope === "section";
+  const selectedOffering = offerings.find((item) => String(item.id) === String(offeringId));
+  const selectedSection = sections.find((item) => String(item.id) === String(sectionId));
+
+  function changeLevel(value) { setLevelId(value); const nextGrade = grades.find((item) => item.active && String(item.levelId) === String(value)); setGradeId(String(nextGrade?.id || "")); const nextSection = sections.find((item) => item.active && String(item.yearId) === String(year?.id) && String(item.gradeId) === String(nextGrade?.id)); setSectionId(String(nextSection?.id || "")); const nextOffering = offerings.find((item) => String(item.sectionId) === String(nextSection?.id)); setOfferingId(String(nextOffering?.id || "")); }
+  function changeGrade(value) { setGradeId(value); const nextSection = sections.find((item) => item.active && String(item.yearId) === String(year?.id) && String(item.gradeId) === String(value)); setSectionId(String(nextSection?.id || "")); const nextOffering = offerings.find((item) => String(item.sectionId) === String(nextSection?.id)); setOfferingId(String(nextOffering?.id || "")); }
+  function changeSection(value) { setSectionId(value); const nextOffering = offerings.find((item) => String(item.sectionId) === String(value)); setOfferingId(String(nextOffering?.id || "")); }
+
+  function values(teacherId = teacher.id) {
+    return { scope: sectionScope ? "section" : "course", scopeId: sectionScope ? Number(sectionId) : Number(offeringId), weeklyHours: selectedOffering?.weeklyHours || 1, teacherId, startsOn, endsOn };
+  }
+  function submit(event) { event.preventDefault(); if (!sectionId || (!sectionScope && !offeringId)) return setValidation("Selecciona el destino académico completo."); if (!startsOn || !endsOn || endsOn < startsOn) return setValidation("Selecciona una vigencia válida."); setValidation(""); onSave(values()); }
+
+  return <aside className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[465px] flex-col border-l border-[#b7cac3] bg-white shadow-[-22px_0_58px_rgba(14,48,37,0.15)] max-sm:inset-x-0 max-sm:max-w-none 2xl:static 2xl:z-auto 2xl:max-h-[820px] 2xl:rounded-2xl 2xl:border 2xl:shadow-[0_18px_48px_rgba(14,48,37,0.08)]">
+    <form className="flex min-h-0 flex-1 flex-col" onSubmit={submit}><header className="relative flex items-start justify-between border-b border-[#d8e3df] px-6 py-6"><div><h2 className="text-2xl font-extrabold tracking-[-0.035em] text-[#14231e]">{fixed ? "Editar asignación" : "Nueva asignación"}</h2><p className="mt-1 text-sm text-[#6c7b75]">{year?.name}</p></div><button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-xl border border-[#b7cdc5] hover:bg-[#eef8f4]" aria-label="Cerrar"><X size={21} /></button><div className="absolute inset-x-0 bottom-0 h-1 bg-[linear-gradient(90deg,#087a5b_0_42%,#f6c329_42%_70%,#2488b8_70%)]" /></header>
+      <div className="min-h-0 flex-1 space-y-7 overflow-y-auto px-6 py-6">
+        <section><h3 className="mb-3 flex items-center gap-3 text-base font-extrabold text-[#11684f]"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#e8f5ef]"><UserRound size={18} /></span>Docente</h3><div className="flex min-h-12 items-center gap-3 rounded-xl border border-[#c7d8d2] bg-[#f7faf9] px-4"><span className="grid h-8 w-8 place-items-center rounded-full bg-[#087a5b] text-xs font-extrabold text-white">{teacher.initials}</span><strong className="text-sm text-[#22352d]">{teacher.name}</strong></div></section>
+        <section className="border-t border-[#dce6e2] pt-7"><h3 className="mb-4 flex items-center gap-3 text-base font-extrabold text-[#11684f]"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#fff4d2] text-[#8a6500]"><GraduationCap size={18} /></span>Destino académico</h3>{fixed ? <div className="rounded-xl border border-[#c5d7d0] bg-[#f7faf9] p-4"><p className="font-extrabold text-[#20312b]">{assignment.title}</p><p className="mt-1 text-xs text-[#6c7b75]">{assignment.level.name} · {assignment.grade.name} · Sección {assignment.section.name}</p></div> : <div className="grid gap-4"><label className="text-xs font-extrabold text-[#41534b]">Nivel<select className={`${CONTROL} mt-2`} value={levelId} onChange={(event) => changeLevel(event.target.value)}>{levels.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="text-xs font-extrabold text-[#41534b]">Grado<select className={`${CONTROL} mt-2`} value={gradeId} onChange={(event) => changeGrade(event.target.value)}>{availableGrades.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="text-xs font-extrabold text-[#41534b]">Sección<select className={`${CONTROL} mt-2`} value={sectionId} onChange={(event) => changeSection(event.target.value)}>{availableSections.map((item) => <option key={item.id} value={item.id}>Sección {item.name}</option>)}</select></label>{!sectionScope && <label className="text-xs font-extrabold text-[#41534b]">Curso<select className={`${CONTROL} mt-2`} value={offeringId} onChange={(event) => setOfferingId(event.target.value)}>{availableOfferings.map((item) => { const current = assignmentMap.get(`course:${item.id}`); const currentTeacher = teacherMap.get(String(current?.teacherId)); return <option key={item.id} value={item.id}>{item.visibleName || subjectMap.get(String(item.subjectId))?.name || "Curso"}{currentTeacher ? ` · ${currentTeacher.name}` : ""}</option>; })}</select></label>}</div>}</section>
+        <section className="border-t border-[#dce6e2] pt-7"><h3 className="mb-4 flex items-center gap-3 text-base font-extrabold text-[#11684f]"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#edf7fc] text-[#2488b8]"><CalendarDays size={18} /></span>Vigencia</h3><div className="grid gap-4 sm:grid-cols-2"><label className="text-xs font-extrabold text-[#41534b]">Desde<input className={`${CONTROL} mt-2`} type="date" min={year?.startsOn} max={year?.endsOn} value={startsOn} onChange={(event) => setStartsOn(event.target.value)} /></label><label className="text-xs font-extrabold text-[#41534b]">Hasta<input className={`${CONTROL} mt-2`} type="date" min={year?.startsOn} max={year?.endsOn} value={endsOn} onChange={(event) => setEndsOn(event.target.value)} /></label></div></section>
+        {validation && <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{validation}</p>}
+        {fixed && <button type="button" disabled={busy} onClick={() => onRemove(values(""))} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-200 text-sm font-extrabold text-red-700 hover:bg-red-50"><Trash2 size={17} />Retirar asignación</button>}
+      </div><footer className="border-t border-[#d8e3df] bg-[#fbfdfc] px-6 py-5"><button disabled={busy} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#087a5b] text-sm font-extrabold text-white shadow-[0_10px_24px_rgba(8,122,91,0.18)] hover:bg-[#05684d] disabled:opacity-50"><Check size={18} />{busy ? "Guardando…" : "Guardar asignación"}</button></footer></form>
+  </aside>;
+}

@@ -1,0 +1,64 @@
+{
+  "name": "max-planck-erp",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5174",
+    "build": "vite build",
+    "test:teacher": "playwright test",
+    "preview": "vite preview --host 0.0.0.0 --port 4174",
+    "desktop": "vite build && electron .",
+    "desktop:build": "node desktop/build.cjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.3",
+    "@vitejs/plugin-react": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "tailwindcss": "^4.3.3"
+  },
+  "description": "Portal educativo del Colegio Max Planck",
+  "author": "Colegio Max Planck",
+  "main": "desktop/main.cjs",
+  "build": {
+    "appId": "pe.edu.maxplanck.portal",
+    "productName": "Colegio Max Planck",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "desktop/main.cjs",
+      "desktop/icon.png",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "desktop/icon.png"
+    },
+    "portable": {
+      "artifactName": "ColegioMaxPlanck-Portable-${version}.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Colegio Max Planck",
+      "artifactName": "ColegioMaxPlanck-Instalador-${version}.exe"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+dni;nombres;apellidos;correo;clave;nivel;grado;seccion;dni_apoderado;nombre_apoderado;parentesco
+99001001;Lucía;Prueba Rojas;;;Primaria;1er y 2do;A;88001001;Rosa Pérez Rojas;madre
+99001002;Mateo;Prueba Flores;;;Primaria;1er y 2do;A;88001001;Rosa Pérez Rojas;madre
+99001003;Valentina;Prueba Torres;;;Primaria;1er y 2do;A;88001002;Carlos Torres Vega;padre
